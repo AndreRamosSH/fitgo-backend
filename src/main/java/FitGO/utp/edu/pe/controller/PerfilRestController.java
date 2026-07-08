@@ -69,7 +69,19 @@ public class PerfilRestController {
         usuario.setApellido(request.getApellido());
         usuario.setTelefono(request.getTelefono());
 
-        if (request.getPassword() != null && !request.getPassword().trim().isEmpty() && request.getPassword().length() >= 6) {
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            if (request.getPassword().length() < 6) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "La nueva contraseña debe tener al menos 6 caracteres"));
+            }
+            if (request.getPasswordActual() == null || request.getPasswordActual().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Debe proporcionar la contraseña actual"));
+            }
+            if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "La contraseña actual es incorrecta"));
+            }
             usuario.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 

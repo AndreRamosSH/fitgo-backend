@@ -6,6 +6,7 @@ public class PerfilRequest {
     private String correo;
     private String telefono;
     private String password;
+    private String passwordActual;
 
     public PerfilRequest() {
     }
@@ -56,5 +57,13 @@ public class PerfilRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPasswordActual() {
+        return passwordActual;
+    }
+
+    public void setPasswordActual(String passwordActual) {
+        this.passwordActual = passwordActual;
     }
 }

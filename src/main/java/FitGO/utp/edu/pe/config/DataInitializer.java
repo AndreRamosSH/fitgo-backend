@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -22,6 +23,7 @@ import FitGO.utp.edu.pe.repository.MembresiaRepository;
 import FitGO.utp.edu.pe.repository.PlanRepository;
 import FitGO.utp.edu.pe.repository.UsuarioRepository;
 
+@Profile("dev")
 @Component
 public class DataInitializer implements CommandLineRunner {
 
