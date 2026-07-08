@@ -1,10 +1,23 @@
 package FitGO.utp.edu.pe.dto;
 
+import jakarta.validation.constraints.*;
+
 public class PerfilRequest {
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 2, message = "El nombre debe tener al menos 2 caracteres")
     private String nombre;
+
+    @NotBlank(message = "El apellido es obligatorio")
+    @Size(min = 2, message = "El apellido debe tener al menos 2 caracteres")
     private String apellido;
+
+    @NotBlank(message = "El correo es obligatorio")
+    @Email(message = "El formato de correo es inválido")
     private String correo;
+
+    @Pattern(regexp = "^$|^[+0-9\\s]{7,15}$", message = "El número telefónico es inválido")
     private String telefono;
+
     private String password;
     private String passwordActual;
 

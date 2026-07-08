@@ -1,15 +1,35 @@
 package FitGO.utp.edu.pe.dto;
 
 import FitGO.utp.edu.pe.entity.Rol;
+import jakarta.validation.constraints.*;
 
 public class RegistroRequest {
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 2, message = "El nombre debe tener al menos 2 caracteres")
     private String nombre;
+
+    @NotBlank(message = "El apellido es obligatorio")
+    @Size(min = 2, message = "El apellido debe tener al menos 2 caracteres")
     private String apellido;
+
+    @NotBlank(message = "El correo es obligatorio")
+    @Email(message = "El formato de correo es inválido")
     private String correo;
+
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
+
+    @NotNull(message = "El rol es obligatorio")
     private Rol rol;
+
+    @Pattern(regexp = "^[+0-9\\s]{7,15}$", message = "El número telefónico es inválido")
     private String telefono;
+
     private FitGO.utp.edu.pe.entity.Turno turno;
+
+    @Min(value = 0, message = "La experiencia no puede ser menor a 0")
+    @Max(value = 50, message = "La experiencia no puede ser mayor a 50")
     private Integer experienciaAnios;
 
     public RegistroRequest() {

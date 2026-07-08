@@ -1,9 +1,18 @@
 package FitGO.utp.edu.pe.dto;
 
-public class MetricasDTO {
+import jakarta.validation.constraints.*;
 
+public class MetricasDTO {
+    @NotNull(message = "El peso es obligatorio")
+    @DecimalMin(value = "10.0", message = "El peso debe ser mayor o igual a 10 kg")
+    @DecimalMax(value = "500.0", message = "El peso debe ser menor o igual a 500 kg")
     private Double peso;
-    private Double altura; 
+
+    @NotNull(message = "La altura es obligatoria")
+    @DecimalMin(value = "50.0", message = "La altura debe ser mayor o igual a 50 cm")
+    @DecimalMax(value = "300.0", message = "La altura debe ser menor o igual a 300 cm")
+    private Double altura;
+
     private Double imc;
 
     public MetricasDTO() {
@@ -38,5 +47,4 @@ public class MetricasDTO {
     public void setImc(Double imc) {
         this.imc = imc;
     }
-
 }
