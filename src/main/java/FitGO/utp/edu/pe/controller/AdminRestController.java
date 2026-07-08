@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +55,7 @@ public class AdminRestController {
     }
 
     @PostMapping("/usuarios/registro")
-    public ResponseEntity<?> registrarUsuario(Authentication auth, @RequestBody RegistroRequest request) {
+    public ResponseEntity<?> registrarUsuario(Authentication auth, @Valid @RequestBody RegistroRequest request) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
         try {
@@ -124,7 +125,7 @@ public class AdminRestController {
     }
 
     @PostMapping("/membresias/nuevo-plan")
-    public ResponseEntity<?> crearPlan(Authentication auth, @RequestBody PlanRequest request) {
+    public ResponseEntity<?> crearPlan(Authentication auth, @Valid @RequestBody PlanRequest request) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
         try {
@@ -147,7 +148,7 @@ public class AdminRestController {
     }
 
     @PutMapping("/membresias/plan/{id}")
-    public ResponseEntity<?> actualizarPlan(Authentication auth, @PathVariable Long id, @RequestBody PlanRequest request) {
+    public ResponseEntity<?> actualizarPlan(Authentication auth, @PathVariable Long id, @Valid @RequestBody PlanRequest request) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
         try {
@@ -177,7 +178,7 @@ public class AdminRestController {
     }
 
     @PostMapping("/membresias/asignar")
-    public ResponseEntity<?> asignarMembresia(Authentication auth, @RequestBody MembresiaRequest request) {
+    public ResponseEntity<?> asignarMembresia(Authentication auth, @Valid @RequestBody MembresiaRequest request) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
         try {

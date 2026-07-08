@@ -8,6 +8,7 @@ import FitGO.utp.edu.pe.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 
@@ -43,7 +44,7 @@ public class MetricasApiController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<?> registrarMetricas(Authentication auth, @RequestBody MetricasDTO dto) {
+    public ResponseEntity<?> registrarMetricas(Authentication auth, @Valid @RequestBody MetricasDTO dto) {
         String correo = auth.getName();
         Usuario usuario = usuarioRepository.findByCorreo(correo).orElse(null);
 

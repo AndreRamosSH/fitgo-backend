@@ -6,6 +6,7 @@ import FitGO.utp.edu.pe.dto.RegistroRequest;
 import FitGO.utp.edu.pe.entity.Rol;
 import FitGO.utp.edu.pe.entity.Usuario;
 import FitGO.utp.edu.pe.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class AuthRestController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         Optional<String> tokenOpt = authService.autenticar(loginRequest);
 
         if (tokenOpt.isEmpty()) {
@@ -52,7 +53,7 @@ public class AuthRestController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<?> registro(@RequestBody RegistroRequest registroRequest) {
+    public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest registroRequest) {
         try {
             registroRequest.setRol(Rol.MIEMBRO);
             authService.registrarUsuario(registroRequest);

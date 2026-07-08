@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class PerfilRestController {
     }
 
     @PutMapping
-    public ResponseEntity<?> actualizarPerfil(Authentication auth, @RequestBody PerfilRequest request) {
+    public ResponseEntity<?> actualizarPerfil(Authentication auth, @Valid @RequestBody PerfilRequest request) {
         if (auth == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autorizado"));
         }

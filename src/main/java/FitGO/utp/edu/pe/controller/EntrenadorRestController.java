@@ -8,6 +8,7 @@ import FitGO.utp.edu.pe.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.List;
@@ -94,7 +95,7 @@ public class EntrenadorRestController {
     }
 
     @PostMapping("/asistencia")
-    public ResponseEntity<?> registrarAsistencia(Authentication auth, @RequestBody AsistenciaRequest request) {
+    public ResponseEntity<?> registrarAsistencia(Authentication auth, @Valid @RequestBody AsistenciaRequest request) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
         if (request.getCorreo() == null || request.getCorreo().trim().isEmpty()) {
