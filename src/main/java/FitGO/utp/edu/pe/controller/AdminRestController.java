@@ -68,21 +68,33 @@ public class AdminRestController {
     }
 
     @GetMapping("/usuarios")
-    public ResponseEntity<?> listarUsuarios(Authentication auth) {
+    public ResponseEntity<?> listarUsuarios(
+            Authentication auth,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        if (page != null && size != null) {
+            return ResponseEntity.ok(authService.listarUsuariosPaginado(page, size));
+        }
         return ResponseEntity.ok(authService.listarUsuarios());
     }
 
     @GetMapping("/miembros")
-    public ResponseEntity<?> listarMiembros(Authentication auth) {
+    public ResponseEntity<?> listarMiembros(
+            Authentication auth,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
 
-        List<Usuario> miembros = authService.listarMiembros();
         Map<String, Integer> resumen = membresiaService.obtenerResumenMiembros();
-
         Map<String, Object> response = new HashMap<>();
-        response.put("miembros", miembros);
         response.put("resumen", resumen);
+
+        if (page != null && size != null) {
+            response.put("miembrosPage", authService.listarMiembrosPaginado(page, size));
+        } else {
+            response.put("miembros", authService.listarMiembros());
+        }
 
         return ResponseEntity.ok(response);
     }

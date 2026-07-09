@@ -16,6 +16,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -181,5 +184,13 @@ public class AuthService {
         }
         public void guardarUsuario(Usuario usuario) {
                 usuarioRepository.save(usuario);
+        }
+
+        public Page<Usuario> listarUsuariosPaginado(int page, int size) {
+                return usuarioRepository.findAll(PageRequest.of(page, size));
+        }
+
+        public Page<Usuario> listarMiembrosPaginado(int page, int size) {
+                return usuarioRepository.findByRol(Rol.MIEMBRO, PageRequest.of(page, size));
         }
 }
