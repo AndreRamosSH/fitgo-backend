@@ -22,4 +22,16 @@ public interface MembresiaRepository extends JpaRepository<Membresia, Long> {
     long countByEstado(@Param("estado") EstadoMembresia estado);
 
     Optional<Membresia> findByUsuarioAndEstado(Usuario usuario, EstadoMembresia estado);
+
+    @Modifying
+    @Query("UPDATE Membresia m SET m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.VENCIDA WHERE m.fechaFin < :hoy AND m.estado != FitGO.utp.edu.pe.entity.EstadoMembresia.VENCIDA")
+    void actualizarVencidas(@Param("hoy") java.time.LocalDate hoy);
+
+    @Modifying
+    @Query("UPDATE Membresia m SET m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.POR_VENCER WHERE m.fechaFin >= :hoy AND m.fechaFin <= :limite AND m.estado != FitGO.utp.edu.pe.entity.EstadoMembresia.POR_VENCER")
+    void actualizarPorVencer(@Param("hoy") java.time.LocalDate hoy, @Param("limite") java.time.LocalDate limite);
+
+    @Modifying
+    @Query("UPDATE Membresia m SET m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.ACTIVA WHERE m.fechaFin > :limite AND m.estado != FitGO.utp.edu.pe.entity.EstadoMembresia.ACTIVA")
+    void actualizarActivas(@Param("limite") java.time.LocalDate limite);
 }

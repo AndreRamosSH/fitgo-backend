@@ -9,12 +9,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByCorreo(String correo);
 
     boolean existsByCorreo(String correo);
     List<Usuario> findByRol(Rol rol);
+    Page<Usuario> findByRol(Rol rol, Pageable pageable);
 
     List<Usuario> findByRolAndEntrenadorId(Rol rol, Long entrenadorId);
     

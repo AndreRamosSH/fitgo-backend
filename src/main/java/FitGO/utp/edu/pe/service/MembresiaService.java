@@ -152,20 +152,9 @@ public class MembresiaService {
 
     public void actualizarEstados() {
         LocalDate hoy = LocalDate.now();
-        List<Membresia> membresias = membresiaRepository.findAll();
-
-        for (Membresia m : membresias) {
-            long diasRestantes = ChronoUnit.DAYS.between(hoy, m.getFechaFin());
-
-            if (diasRestantes < 0) {
-                m.setEstado(EstadoMembresia.VENCIDA);
-            } else if (diasRestantes <= 3) {
-                m.setEstado(EstadoMembresia.POR_VENCER);
-            } else {
-                m.setEstado(EstadoMembresia.ACTIVA);
-            }
-
-            membresiaRepository.save(m);
-        }
+        LocalDate limite = hoy.plusDays(3);
+        membresiaRepository.actualizarVencidas(hoy);
+        membresiaRepository.actualizarPorVencer(hoy, limite);
+        membresiaRepository.actualizarActivas(limite);
     }
 }
