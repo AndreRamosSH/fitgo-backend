@@ -23,7 +23,7 @@ import FitGO.utp.edu.pe.repository.MembresiaRepository;
 import FitGO.utp.edu.pe.repository.PlanRepository;
 import FitGO.utp.edu.pe.repository.UsuarioRepository;
 
-@Profile("dev")
+@Profile("dev & !test")
 @Component
 public class DataInitializer implements CommandLineRunner {
 
