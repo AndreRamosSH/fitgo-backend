@@ -1,4 +1,4 @@
-package FitGO.utp.edu.pe.controller.api;
+package FitGO.utp.edu.pe.controller;
 
 import FitGO.utp.edu.pe.dto.MetricasDTO;
 import FitGO.utp.edu.pe.entity.Progreso;
@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/miembro/metricas")
 @CrossOrigin(origins = "http://localhost:4200") 
-public class MetricasApiController {
+public class MetricasRestController {
 
     private final UsuarioRepository usuarioRepository;
     private final ProgresoRepository progresoRepository;
 
-    public MetricasApiController(UsuarioRepository usuarioRepository, ProgresoRepository progresoRepository) {
+    public MetricasRestController(UsuarioRepository usuarioRepository, ProgresoRepository progresoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.progresoRepository = progresoRepository;
     }
