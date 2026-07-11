@@ -4,14 +4,15 @@ import FitGO.utp.edu.pe.entity.Entrenador;
 import FitGO.utp.edu.pe.entity.Membresia;
 import FitGO.utp.edu.pe.entity.Usuario;
 import FitGO.utp.edu.pe.repository.EntrenadorRepository;
+import FitGO.utp.edu.pe.repository.MembresiaRepository;
 import FitGO.utp.edu.pe.service.AsistenciaService;
 import FitGO.utp.edu.pe.service.AuthService;
 import FitGO.utp.edu.pe.service.DashboardMiembroService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,15 +24,18 @@ public class MiembroRestController {
     private final AsistenciaService asistenciaService;
     private final DashboardMiembroService dashboardMiembroService;
     private final EntrenadorRepository entrenadorRepository;
+    private final MembresiaRepository membresiaRepository;
 
     public MiembroRestController(AuthService authService,
                                   AsistenciaService asistenciaService,
                                   DashboardMiembroService dashboardMiembroService,
-                                  EntrenadorRepository entrenadorRepository) {
+                                  EntrenadorRepository entrenadorRepository,
+                                  MembresiaRepository membresiaRepository) {
         this.authService = authService;
         this.asistenciaService = asistenciaService;
         this.dashboardMiembroService = dashboardMiembroService;
         this.entrenadorRepository = entrenadorRepository;
+        this.membresiaRepository = membresiaRepository;
     }
 
     @GetMapping("/resumen")
@@ -50,7 +54,7 @@ public class MiembroRestController {
         Usuario usuario = usuarioOpt.get();
         int racha = asistenciaService.calcularRachaActual(correo);
         Double pesoActual = dashboardMiembroService.obtenerUltimoPeso(correo);
-        Membresia membresia = dashboardMiembroService.obtenerMembresiaActiva(correo);
+        Membresia membresia = dashboardMiembroService.obtenerMembresiaReciente(correo);
 
         Map<String, Object> response = new HashMap<>();
         response.put("usuario", Map.of(
@@ -104,6 +108,12 @@ public class MiembroRestController {
 
         if (usuarioOpt.isPresent() && entrenadorOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
+            List<Membresia> mems = membresiaRepository.findByUsuarioId(usuario.getId());
+            boolean tieneAcceso = mems.stream().anyMatch(Membresia::tieneAcceso);
+            if (!tieneAcceso) {
+                return ResponseEntity.badRequest().body(Map.of("error", "El miembro no tiene una membresía activa ni está en período de gracia."));
+            }
+
             usuario.setEntrenador(entrenadorOpt.get());
             authService.guardarUsuario(usuario);
             return ResponseEntity.ok(Map.of("mensaje", "Entrenador elegido exitosamente"));
