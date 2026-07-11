@@ -112,4 +112,14 @@ public class Usuario {
     public void setEntrenador(Entrenador entrenador) {
         this.entrenador = entrenador;
     }
+
+    public java.util.Map<String, Object> getDatosPerfil() {
+        java.util.Map<String, Object> details = new java.util.HashMap<>();
+        details.put("nombre", this.nombre);
+        details.put("apellido", this.apellido);
+        details.put("correo", this.correo);
+        details.put("rol", this.rol);
+        details.put("telefono", this.telefono);
+        return details;
+    }
 }

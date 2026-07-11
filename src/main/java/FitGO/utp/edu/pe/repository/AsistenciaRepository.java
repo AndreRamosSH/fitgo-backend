@@ -13,4 +13,6 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM Asistencia a WHERE a.fechaHora >= :inicio AND a.fechaHora < :fin")
     long countAsistenciasEntre(@org.springframework.data.repository.query.Param("inicio") java.time.LocalDateTime inicio, @org.springframework.data.repository.query.Param("fin") java.time.LocalDateTime fin);
     List<Asistencia> findByUsuarioOrderByFechaHoraDesc(Usuario usuario);
+    List<Asistencia> findByFechaHoraBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    List<Asistencia> findByUsuarioIdAndFechaHoraBetween(Long usuarioId, java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

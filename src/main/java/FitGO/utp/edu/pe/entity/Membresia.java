@@ -87,4 +87,15 @@ public class Membresia {
     public void setEstado(EstadoMembresia estado) {
         this.estado = estado;
     }
+
+    public boolean tieneAcceso() {
+        if (this.estado == EstadoMembresia.ACTIVA || this.estado == EstadoMembresia.POR_VENCER) {
+            return true;
+        }
+        if (this.estado == EstadoMembresia.VENCIDA) {
+            long daysSinceExpiry = java.time.temporal.ChronoUnit.DAYS.between(this.fechaFin, LocalDate.now());
+            return daysSinceExpiry >= 0 && daysSinceExpiry <= 5;
+        }
+        return false;
+    }
 }

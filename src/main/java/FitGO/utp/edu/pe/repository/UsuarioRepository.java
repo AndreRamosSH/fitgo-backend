@@ -25,6 +25,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @Query("SELECT u FROM Usuario u WHERE u.rol = FitGO.utp.edu.pe.entity.Rol.MIEMBRO AND NOT EXISTS (SELECT m FROM Membresia m WHERE m.usuario = u AND (m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.ACTIVA OR m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.POR_VENCER))")
     List<Usuario> findMiembrosSinMembresiaActiva();
 
+    @Query("SELECT u FROM Usuario u WHERE u.rol = FitGO.utp.edu.pe.entity.Rol.MIEMBRO AND EXISTS (SELECT m FROM Membresia m WHERE m.usuario = u AND (m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.ACTIVA OR m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.POR_VENCER))")
+    List<Usuario> findMiembrosConMembresiaActiva();
+
+    @Modifying
+    @Query("UPDATE Usuario u SET u.entrenador = null WHERE u.rol = FitGO.utp.edu.pe.entity.Rol.MIEMBRO " +
+           "AND u.entrenador IS NOT NULL " +
+           "AND NOT EXISTS (SELECT m FROM Membresia m WHERE m.usuario = u AND (m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.ACTIVA OR m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.POR_VENCER)) " +
+           "AND (NOT EXISTS (SELECT m FROM Membresia m WHERE m.usuario = u) OR (SELECT MAX(m.fechaFin) FROM Membresia m WHERE m.usuario = u) < :limiteGracia)")
+    void desasignarEntrenadoresDeMiembrosExcedidosDeGracia(@Param("limiteGracia") java.time.LocalDate limiteGracia);
+
     @Modifying
     @Query("UPDATE Usuario u SET u.entrenador = null WHERE u.entrenador.id = :entrenadorId")
     void desasignarEntrenador(@Param("entrenadorId") Long entrenadorId);

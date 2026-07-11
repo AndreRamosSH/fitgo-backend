@@ -23,6 +23,8 @@ public interface MembresiaRepository extends JpaRepository<Membresia, Long> {
 
     Optional<Membresia> findByUsuarioAndEstado(Usuario usuario, EstadoMembresia estado);
 
+    List<Membresia> findByUsuarioOrderByFechaFinDesc(Usuario usuario);
+
     @Modifying
     @Query("UPDATE Membresia m SET m.estado = FitGO.utp.edu.pe.entity.EstadoMembresia.VENCIDA WHERE m.fechaFin < :hoy AND m.estado != FitGO.utp.edu.pe.entity.EstadoMembresia.VENCIDA")
     void actualizarVencidas(@Param("hoy") java.time.LocalDate hoy);
