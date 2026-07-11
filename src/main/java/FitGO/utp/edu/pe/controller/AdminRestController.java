@@ -200,4 +200,26 @@ public class AdminRestController {
             return ResponseEntity.badRequest().body(Map.of("error", "No se pudo asignar la membresía."));
         }
     }
+
+    @GetMapping("/miembros/activos")
+    public ResponseEntity<?> listarMiembrosActivos(Authentication auth) {
+        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        return ResponseEntity.ok(authService.listarMiembrosActivos());
+    }
+
+    @PostMapping("/miembros/asignar-entrenador")
+    public ResponseEntity<?> asignarEntrenador(Authentication auth, @RequestBody Map<String, Long> payload) {
+        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        Long miembroId = payload.get("miembroId");
+        Long entrenadorId = payload.get("entrenadorId");
+        if (miembroId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "miembroId es obligatorio"));
+        }
+        try {
+            authService.asignarEntrenador(miembroId, entrenadorId);
+            return ResponseEntity.ok(Map.of("mensaje", "Entrenador asignado exitosamente"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }
