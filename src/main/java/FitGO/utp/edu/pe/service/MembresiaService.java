@@ -1,7 +1,6 @@
 package FitGO.utp.edu.pe.service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +44,7 @@ public class MembresiaService {
         return planRepository.findById(id);
     }
 
-    public void guardarPlan(PlanRequest request) {
+    private void validarPlanRequest(PlanRequest request) {
         if (request.getNombre() == null || request.getNombre().trim().isEmpty() ||
             !request.getNombre().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
             throw new IllegalArgumentException("El nombre del plan no es valido.");
@@ -56,6 +55,10 @@ public class MembresiaService {
         if (request.getDuracionDias() == null || request.getDuracionDias() <= 0) {
             throw new IllegalArgumentException("La duracion debe ser mayor a cero.");
         }
+    }
+
+    public void guardarPlan(PlanRequest request) {
+        validarPlanRequest(request);
 
         Plan plan = new Plan(
                 request.getNombre(),
@@ -67,16 +70,7 @@ public class MembresiaService {
     }
 
     public void actualizarPlan(Long id, PlanRequest request) {
-        if (request.getNombre() == null || request.getNombre().trim().isEmpty() ||
-            !request.getNombre().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
-            throw new IllegalArgumentException("El nombre del plan no es valido.");
-        }
-        if (request.getPrecio() == null || request.getPrecio().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("El precio debe ser mayor a cero.");
-        }
-        if (request.getDuracionDias() == null || request.getDuracionDias() <= 0) {
-            throw new IllegalArgumentException("La duracion debe ser mayor a cero.");
-        }
+        validarPlanRequest(request);
 
         Optional<Plan> planOpt = planRepository.findById(id);
         if (planOpt.isEmpty()) {
@@ -156,5 +150,8 @@ public class MembresiaService {
         membresiaRepository.actualizarVencidas(hoy);
         membresiaRepository.actualizarPorVencer(hoy, limite);
         membresiaRepository.actualizarActivas(limite);
+        
+        LocalDate limiteGracia = hoy.minusDays(5);
+        usuarioRepository.desasignarEntrenadoresDeMiembrosExcedidosDeGracia(limiteGracia);
     }
 }

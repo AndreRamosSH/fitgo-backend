@@ -11,6 +11,8 @@ import FitGO.utp.edu.pe.repository.AsistenciaRepository;
 import FitGO.utp.edu.pe.repository.EntrenadorRepository;
 import FitGO.utp.edu.pe.repository.UsuarioRepository;
 import FitGO.utp.edu.pe.repository.MembresiaRepository;
+import FitGO.utp.edu.pe.entity.Membresia;
+import FitGO.utp.edu.pe.entity.EstadoMembresia;
 import FitGO.utp.edu.pe.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -192,5 +196,32 @@ public class AuthService {
 
         public Page<Usuario> listarMiembrosPaginado(int page, int size) {
                 return usuarioRepository.findByRol(Rol.MIEMBRO, PageRequest.of(page, size));
+        }
+
+        @Transactional
+        public void asignarEntrenador(Long miembroId, Long entrenadorId) {
+                Usuario miembro = usuarioRepository.findById(miembroId)
+                                .orElseThrow(() -> new IllegalArgumentException("Miembro no encontrado"));
+                if (miembro.getRol() != Rol.MIEMBRO) {
+                        throw new IllegalArgumentException("El usuario no es un miembro");
+                }
+                if (entrenadorId == null) {
+                        miembro.setEntrenador(null);
+                } else {
+                        List<Membresia> mems = membresiaRepository.findByUsuarioId(miembroId);
+                        boolean tieneAcceso = mems.stream().anyMatch(Membresia::tieneAcceso);
+                        if (!tieneAcceso) {
+                                throw new IllegalArgumentException("El miembro no tiene una membresía activa ni está en período de gracia");
+                        }
+
+                        Entrenador entrenador = entrenadorRepository.findById(entrenadorId)
+                                        .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado"));
+                        miembro.setEntrenador(entrenador);
+                }
+                usuarioRepository.save(miembro);
+        }
+
+        public List<Usuario> listarMiembrosActivos() {
+                return usuarioRepository.findMiembrosConMembresiaActiva();
         }
 }
