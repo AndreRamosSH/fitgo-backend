@@ -23,11 +23,8 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        // Retornamos el objeto errores bajo la propiedad "error" o "errores".
-        // Para consistencia con el frontend, podemos retornar un mapa con el mensaje amigable de error.
-        // O retornar el mapa detallado. Usualmente se usa {"error": "..."} o {"errores": {...}}
-        // Retornemos un mensaje de error principal y el detalle de errores.
-        String mensajeGeneral = errors.values().iterator().next(); // Toma el primer mensaje de error como general
+
+        String mensajeGeneral = errors.values().iterator().next();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
             "error", mensajeGeneral,
             "errores", errors

@@ -9,10 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
-import java.util.HashMap;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/perfil")
@@ -26,38 +24,23 @@ public class PerfilRestController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private Usuario obtenerUsuarioAutenticado(Authentication auth) {
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autorizado");
+        }
+        return usuarioRepository.findByCorreo(auth.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    }
+
     @GetMapping
     public ResponseEntity<?> obtenerPerfil(Authentication auth) {
-        if (auth == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autorizado"));
-        }
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado"));
-        }
-
-        Usuario usuario = usuarioOpt.get();
-        Map<String, Object> details = new HashMap<>();
-        details.put("nombre", usuario.getNombre());
-        details.put("apellido", usuario.getApellido());
-        details.put("correo", usuario.getCorreo());
-        details.put("rol", usuario.getRol());
-        details.put("telefono", usuario.getTelefono());
-
-        return ResponseEntity.ok(details);
+        Usuario usuario = obtenerUsuarioAutenticado(auth);
+        return ResponseEntity.ok(usuario.getDatosPerfil());
     }
 
     @PutMapping
     public ResponseEntity<?> actualizarPerfil(Authentication auth, @Valid @RequestBody PerfilRequest request) {
-        if (auth == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autorizado"));
-        }
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado"));
-        }
-
-        Usuario usuario = usuarioOpt.get();
+        Usuario usuario = obtenerUsuarioAutenticado(auth);
 
         if (request.getCorreo() != null && !request.getCorreo().equalsIgnoreCase(usuario.getCorreo())) {
             if (usuarioRepository.existsByCorreo(request.getCorreo())) {

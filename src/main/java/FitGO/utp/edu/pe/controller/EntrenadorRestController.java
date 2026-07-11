@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,16 +49,18 @@ public class EntrenadorRestController {
         return ResponseEntity.ok(Map.of("miembros", miembros, "totalMiembros", miembros.size()));
     }
 
+    private Usuario obtenerUsuarioAutenticado(Authentication auth) {
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado");
+        }
+        return authService.buscarPorCorreo(auth.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    }
+
     @GetMapping("/horario")
     public ResponseEntity<?> obtenerHorario(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
-
-        Optional<Usuario> usuarioOpt = authService.buscarPorCorreo(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
-        }
-
-        Entrenador entrenador = entrenadorRepository.findByUsuarioId(usuarioOpt.get().getId());
+        Usuario usuario = obtenerUsuarioAutenticado(auth);
+        Entrenador entrenador = entrenadorRepository.findByUsuarioId(usuario.getId());
         if (entrenador == null) {
             return ResponseEntity.status(404).body(Map.of("error", "Entrenador no encontrado"));
         }
@@ -66,14 +70,7 @@ public class EntrenadorRestController {
 
     @GetMapping("/perfil")
     public ResponseEntity<?> obtenerPerfil(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
-
-        Optional<Usuario> usuarioOpt = authService.buscarPorCorreo(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
-        }
-
-        Usuario usuario = usuarioOpt.get();
+        Usuario usuario = obtenerUsuarioAutenticado(auth);
         Entrenador entrenador = entrenadorRepository.findByUsuarioId(usuario.getId());
         if (entrenador == null) {
             return ResponseEntity.status(404).body(Map.of("error", "Perfil de entrenador no encontrado"));

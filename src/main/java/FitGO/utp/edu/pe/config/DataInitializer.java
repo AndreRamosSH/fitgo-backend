@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import FitGO.utp.edu.pe.entity.Asistencia;
 import FitGO.utp.edu.pe.entity.Entrenador;
 import FitGO.utp.edu.pe.entity.EstadoMembresia;
 import FitGO.utp.edu.pe.entity.Membresia;
@@ -18,12 +19,13 @@ import FitGO.utp.edu.pe.entity.Plan;
 import FitGO.utp.edu.pe.entity.Rol;
 import FitGO.utp.edu.pe.entity.Turno;
 import FitGO.utp.edu.pe.entity.Usuario;
+import FitGO.utp.edu.pe.repository.AsistenciaRepository;
 import FitGO.utp.edu.pe.repository.EntrenadorRepository;
 import FitGO.utp.edu.pe.repository.MembresiaRepository;
 import FitGO.utp.edu.pe.repository.PlanRepository;
 import FitGO.utp.edu.pe.repository.UsuarioRepository;
 
-@Profile("dev & !test")
+@Profile("dev")
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -31,17 +33,20 @@ public class DataInitializer implements CommandLineRunner {
     private final PlanRepository planRepository;
     private final MembresiaRepository membresiaRepository;
     private final EntrenadorRepository entrenadorRepository;
+    private final AsistenciaRepository asistenciaRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UsuarioRepository usuarioRepository,
             PlanRepository planRepository,
             MembresiaRepository membresiaRepository,
             EntrenadorRepository entrenadorRepository,
+            AsistenciaRepository asistenciaRepository,
             PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.planRepository = planRepository;
         this.membresiaRepository = membresiaRepository;
         this.entrenadorRepository = entrenadorRepository;
+        this.asistenciaRepository = asistenciaRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -53,6 +58,7 @@ public class DataInitializer implements CommandLineRunner {
         crearPlanesSiNoExisten();
         crearMembresiasSiNoExisten();
         asignarMiembrosAEntrenadores();
+        crearAsistenciasSiNoExisten();
     }
 
     private void crearAdminSiNoExiste() {
@@ -127,22 +133,8 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearMembresiasSiNoExisten() {
-        if (membresiaRepository.count() > 0) {
-            return;
-        }
-
-        List<Usuario> todosLosUsuarios = usuarioRepository.findAll();
-        List<Usuario> miembros = new ArrayList<>();
-
-        for (Usuario u : todosLosUsuarios) {
-            if (u.getRol() == Rol.MIEMBRO) {
-                miembros.add(u);
-            }
-        }
-
         List<Plan> planes = planRepository.findAll();
-
-        if (miembros.isEmpty() || planes.isEmpty()) {
+        if (planes.isEmpty()) {
             return;
         }
 
@@ -152,31 +144,28 @@ public class DataInitializer implements CommandLineRunner {
 
         LocalDate hoy = LocalDate.now();
 
-        if (miembros.size() > 0) {
-            asignarMembresia(miembros.get(0), planBasico, hoy.minusDays(10), EstadoMembresia.ACTIVA);
-        }
-        if (miembros.size() > 1) {
-            asignarMembresia(miembros.get(1), planEstandar, hoy.minusDays(50), EstadoMembresia.ACTIVA);
-        }
-        if (miembros.size() > 2) {
-            asignarMembresia(miembros.get(2), planPremium, hoy.minusDays(10), EstadoMembresia.ACTIVA);
-        }
-        if (miembros.size() > 3) {
-            asignarMembresia(miembros.get(3), planBasico, hoy.minusDays(25), EstadoMembresia.POR_VENCER);
-        }
-        if (miembros.size() > 4) {
-            asignarMembresia(miembros.get(4), planEstandar, hoy.minusDays(65), EstadoMembresia.VENCIDA);
-        }
+        crearMembresiaParaCorreo("miembro1@fitgo.com", planBasico, hoy.minusDays(10), EstadoMembresia.ACTIVA);
+        crearMembresiaParaCorreo("miembro2@fitgo.com", planEstandar, hoy.minusDays(50), EstadoMembresia.ACTIVA);
+        crearMembresiaParaCorreo("miembro3@fitgo.com", planPremium, hoy.minusDays(10), EstadoMembresia.ACTIVA);
+        crearMembresiaParaCorreo("miembro4@fitgo.com", planBasico, hoy.minusDays(25), EstadoMembresia.POR_VENCER);
+        crearMembresiaParaCorreo("miembro5@fitgo.com", planEstandar, hoy.minusDays(65), EstadoMembresia.VENCIDA);
+        crearMembresiaParaCorreo("miembro6@fitgo.com", planBasico, hoy.minusDays(31), EstadoMembresia.VENCIDA);
+        crearMembresiaParaCorreo("miembro7@fitgo.com", planBasico, hoy.minusDays(29), EstadoMembresia.POR_VENCER);
     }
 
-    private void asignarMembresia(Usuario usuario, Plan plan, LocalDate fechaInicio, EstadoMembresia estado) {
-        Membresia membresia = new Membresia();
-        membresia.setUsuario(usuario);
-        membresia.setPlan(plan);
-        membresia.setFechaInicio(fechaInicio);
-        membresia.setFechaFin(fechaInicio.plusDays(plan.getDuracionDias()));
-        membresia.setEstado(estado);
-        membresiaRepository.save(membresia);
+    private void crearMembresiaParaCorreo(String correo, Plan plan, LocalDate fechaInicio, EstadoMembresia estado) {
+        usuarioRepository.findByCorreo(correo).ifPresent(u -> {
+            List<Membresia> mems = membresiaRepository.findByUsuarioId(u.getId());
+            if (mems.isEmpty()) {
+                Membresia membresia = new Membresia();
+                membresia.setUsuario(u);
+                membresia.setPlan(plan);
+                membresia.setFechaInicio(fechaInicio);
+                membresia.setFechaFin(fechaInicio.plusDays(plan.getDuracionDias()));
+                membresia.setEstado(estado);
+                membresiaRepository.save(membresia);
+            }
+        });
     }
 
     private void crearEntrenadoresSiNoExisten() {
@@ -246,9 +235,54 @@ public class DataInitializer implements CommandLineRunner {
     private void asignarSiExiste(String correo, Entrenador entrenador) {
         usuarioRepository.findByCorreo(correo).ifPresent(u -> {
             if (u.getEntrenador() == null) {
-                u.setEntrenador(entrenador);
-                usuarioRepository.save(u);
+                List<Membresia> mems = membresiaRepository.findByUsuarioId(u.getId());
+                boolean tieneAcceso = mems.stream().anyMatch(Membresia::tieneAcceso);
+                if (tieneAcceso) {
+                    u.setEntrenador(entrenador);
+                    usuarioRepository.save(u);
+                }
             }
         });
+    }
+
+    private void crearAsistenciasSiNoExisten() {
+        if (asistenciaRepository.count() > 0) {
+            return;
+        }
+
+        List<Membresia> membresias = membresiaRepository.findAll();
+        List<Usuario> miembrosActivos = new ArrayList<>();
+        for (Membresia m : membresias) {
+            if (m.getEstado() == EstadoMembresia.ACTIVA || m.getEstado() == EstadoMembresia.POR_VENCER) {
+                miembrosActivos.add(m.getUsuario());
+            }
+        }
+
+        if (miembrosActivos.isEmpty()) {
+            return;
+        }
+
+        LocalDate hoy = LocalDate.now();
+        for (Usuario miembro : miembrosActivos) {
+            long hash = miembro.getId() * 31;
+            for (int i = 30; i >= 0; i--) {
+                LocalDate dia = hoy.minusDays(i);
+                if (dia.getDayOfWeek().getValue() == 7) {
+                    continue;
+                }
+                
+                long pseudoRandom = (hash + (long) i * 17) % 10;
+                if (pseudoRandom < 6) {
+                    Asistencia asistencia = new Asistencia();
+                    asistencia.setUsuario(miembro);
+                    
+                    int hora = 7 + (int) ((pseudoRandom * 3) % 14);
+                    int minuto = (int) ((pseudoRandom * 12) % 60);
+                    
+                    asistencia.setFechaHora(dia.atTime(hora, minuto));
+                    asistenciaRepository.save(asistencia);
+                }
+            }
+        }
     }
 }
