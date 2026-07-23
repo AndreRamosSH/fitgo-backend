@@ -7,9 +7,11 @@ import FitGO.utp.edu.pe.entity.Rol;
 import FitGO.utp.edu.pe.entity.Rutina;
 import FitGO.utp.edu.pe.entity.RutinaEjercicio;
 import FitGO.utp.edu.pe.entity.Usuario;
+import FitGO.utp.edu.pe.entity.EntrenamientoRealizado;
 import FitGO.utp.edu.pe.repository.RutinaEjercicioRepository;
 import FitGO.utp.edu.pe.repository.RutinaRepository;
 import FitGO.utp.edu.pe.repository.UsuarioRepository;
+import FitGO.utp.edu.pe.repository.EntrenamientoRealizadoRepository;
 import FitGO.utp.edu.pe.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,15 +31,18 @@ public class RutinaRestController {
     private final RutinaEjercicioRepository rutinaEjercicioRepository;
     private final UsuarioRepository usuarioRepository;
     private final AuthService authService;
+    private final EntrenamientoRealizadoRepository entrenamientoRealizadoRepository;
 
     public RutinaRestController(RutinaRepository rutinaRepository,
                                   RutinaEjercicioRepository rutinaEjercicioRepository,
                                   UsuarioRepository usuarioRepository,
-                                  AuthService authService) {
+                                  AuthService authService,
+                                  EntrenamientoRealizadoRepository entrenamientoRealizadoRepository) {
         this.rutinaRepository = rutinaRepository;
         this.rutinaEjercicioRepository = rutinaEjercicioRepository;
         this.usuarioRepository = usuarioRepository;
         this.authService = authService;
+        this.entrenamientoRealizadoRepository = entrenamientoRealizadoRepository;
     }
 
     private Usuario obtenerUsuarioAutenticado(Authentication auth) {
@@ -245,6 +250,13 @@ public class RutinaRestController {
 
         if (!rutina.getCreador().getId().equals(usuario.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes permisos para eliminar esta rutina"));
+        }
+
+        // Desvincular entrenamientos completados para evitar fallos por clave foránea
+        List<EntrenamientoRealizado> entrenamientosAsociados = entrenamientoRealizadoRepository.findByRutinaId(rutina.getId());
+        for (EntrenamientoRealizado er : entrenamientosAsociados) {
+            er.setRutina(null);
+            entrenamientoRealizadoRepository.save(er);
         }
 
         rutinaEjercicioRepository.deleteByRutinaId(rutina.getId());

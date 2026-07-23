@@ -76,10 +76,13 @@ public class MiembroRestController {
     }
 
     @GetMapping("/progreso")
-    public ResponseEntity<?> obtenerProgreso(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
-        Double pesoActual = dashboardMiembroService.obtenerUltimoPeso(auth.getName());
-        return ResponseEntity.ok(Map.of("pesoActual", pesoActual));
+    public ResponseEntity<?> obtenerProgreso(
+            Authentication auth,
+            @RequestParam(value = "mes", required = false) String mes) {
+        if (auth == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+        }
+        return ResponseEntity.ok(dashboardMiembroService.obtenerProgresoCompleto(auth.getName(), mes));
     }
 
     @GetMapping("/membresia")

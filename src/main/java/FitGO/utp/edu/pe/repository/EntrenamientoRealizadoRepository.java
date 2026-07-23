@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface EntrenamientoRealizadoRepository extends JpaRepository<EntrenamientoRealizado, Long> {
     List<EntrenamientoRealizado> findByUsuarioCorreoOrderByFechaDesc(String correo);
+    List<EntrenamientoRealizado> findByRutinaId(Long rutinaId);
 }
