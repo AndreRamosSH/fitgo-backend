@@ -36,6 +36,11 @@ public class Usuario {
     @JoinColumn(name = "entrenador_id")
     private Entrenador entrenador;
 
+    private java.time.LocalDate fechaNacimiento;
+    private String sexo;
+    private Double pesoObjetivo;
+    private Double grasaObjetivo;
+
     public Usuario() {
     }
 
@@ -113,6 +118,38 @@ public class Usuario {
         this.entrenador = entrenador;
     }
 
+    public java.time.LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
+    }
+
+    public Double getPesoObjetivo() {
+        return pesoObjetivo;
+    }
+
+    public void setPesoObjetivo(Double pesoObjetivo) {
+        this.pesoObjetivo = pesoObjetivo;
+    }
+
+    public Double getGrasaObjetivo() {
+        return grasaObjetivo;
+    }
+
+    public void setGrasaObjetivo(Double grasaObjetivo) {
+        this.grasaObjetivo = grasaObjetivo;
+    }
+
     public java.util.Map<String, Object> getDatosPerfil() {
         java.util.Map<String, Object> details = new java.util.HashMap<>();
         details.put("nombre", this.nombre);
@@ -120,6 +157,10 @@ public class Usuario {
         details.put("correo", this.correo);
         details.put("rol", this.rol);
         details.put("telefono", this.telefono);
+        details.put("fechaNacimiento", this.fechaNacimiento);
+        details.put("sexo", this.sexo);
+        details.put("pesoObjetivo", this.pesoObjetivo);
+        details.put("grasaObjetivo", this.grasaObjetivo);
         return details;
     }
 }
