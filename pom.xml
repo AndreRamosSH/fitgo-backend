@@ -52,18 +52,6 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- ===== VISTAS - Thymeleaf (requerido por la rúbrica: th:each, th:field) ===== -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-
-		<!-- Permite usar sec:authorize en plantillas Thymeleaf -->
-		<dependency>
-			<groupId>org.thymeleaf.extras</groupId>
-			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
-		</dependency>
-
 		<!-- ===== JWT (autenticación stateless, redirección por rol) ===== -->
 		<!-- jjwt-api: solo la interfaz pública, se usa al compilar -->
 		<dependency>
