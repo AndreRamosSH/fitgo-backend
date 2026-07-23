@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/miembro/metricas")
-@CrossOrigin(origins = "http://localhost:4200") 
+@CrossOrigin(origins = {"http://localhost:4200", "https://gimnasiointegralfitgo.com", "https://www.gimnasiointegralfitgo.com"})
 public class MetricasRestController {
 
     private final UsuarioRepository usuarioRepository;

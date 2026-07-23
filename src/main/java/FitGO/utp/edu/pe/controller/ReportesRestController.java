@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/reportes")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "https://gimnasiointegralfitgo.com", "https://www.gimnasiointegralfitgo.com"})
 public class ReportesRestController {
 
     private final ReporteService reporteService;
