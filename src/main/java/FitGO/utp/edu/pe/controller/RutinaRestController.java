@@ -1,5 +1,8 @@
 package FitGO.utp.edu.pe.controller;
 
+import FitGO.utp.edu.pe.dto.RutinaAsignarRequest;
+import FitGO.utp.edu.pe.dto.RutinaEjercicioRequest;
+import FitGO.utp.edu.pe.dto.RutinaRequest;
 import FitGO.utp.edu.pe.entity.Rol;
 import FitGO.utp.edu.pe.entity.Rutina;
 import FitGO.utp.edu.pe.entity.RutinaEjercicio;
@@ -16,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/rutinas")
@@ -55,44 +57,19 @@ public class RutinaRestController {
             // El entrenador ve sus rutinas plantilla creadas por él
             List<Rutina> plantillas = rutinaRepository.findByCreadorId(usuario.getId()).stream()
                     .filter(r -> r.getMiembro().getId().equals(usuario.getId()) || "PROPIA".equalsIgnoreCase(r.getTipo()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             // Buscar también todas las asignaciones existentes hechas por este entrenador
             List<Rutina> asignadas = rutinaRepository.findByCreadorIdAndTipo(usuario.getId(), "ASIGNADA");
 
             for (Rutina r : plantillas) {
-                Map<String, Object> rMap = new HashMap<>();
-                rMap.put("id", r.getId().toString());
-                rMap.put("nombre", r.getNombre());
-                rMap.put("dias", r.getDias());
-                rMap.put("tipo", "PROPIA");
-                rMap.put("autor", "Yo");
-
-                List<RutinaEjercicio> ejercicios = rutinaEjercicioRepository.findByRutinaIdOrderByOrdenAsc(r.getId());
-                rMap.put("ejerciciosCount", ejercicios.size());
-
-                List<Map<String, Object>> eList = new ArrayList<>();
-                for (RutinaEjercicio re : ejercicios) {
-                    Map<String, Object> eMap = new HashMap<>();
-                    eMap.put("id", re.getId().toString());
-                    eMap.put("ejercicioId", re.getEjercicioId());
-                    eMap.put("nombre", re.getNombre());
-                    eMap.put("series", re.getSeries());
-                    eMap.put("reps", re.getReps());
-                    eMap.put("peso", re.getPeso());
-                    eMap.put("descanso", re.getDescanso());
-                    eList.add(eMap);
-                }
-                rMap.put("ejercicios", eList);
-
                 // IDs de miembros que tienen esta rutina asignada
                 List<String> miembrosAsignados = asignadas.stream()
                         .filter(a -> a.getNombre().equalsIgnoreCase(r.getNombre()))
                         .map(a -> a.getMiembro().getId().toString())
-                        .collect(Collectors.toList());
-                rMap.put("asignados", miembrosAsignados);
+                        .toList();
 
-                response.add(rMap);
+                response.add(mapearRutinaAResponse(r, usuario, miembrosAsignados));
             }
             return ResponseEntity.ok(response);
         }
@@ -101,39 +78,7 @@ public class RutinaRestController {
         List<Rutina> listaRutinas = rutinaRepository.findByMiembroId(usuario.getId());
 
         for (Rutina r : listaRutinas) {
-            Map<String, Object> rMap = new HashMap<>();
-            rMap.put("id", r.getId().toString());
-            rMap.put("nombre", r.getNombre());
-            rMap.put("dias", r.getDias());
-            rMap.put("tipo", r.getTipo());
-            
-            String autor = "Sistema";
-            if (r.getCreador() != null) {
-                if (r.getCreador().getId().equals(usuario.getId())) {
-                    autor = "Yo";
-                } else {
-                    autor = r.getCreador().getNombre() + " " + r.getCreador().getApellido();
-                }
-            }
-            rMap.put("autor", autor);
-
-            List<RutinaEjercicio> ejercicios = rutinaEjercicioRepository.findByRutinaIdOrderByOrdenAsc(r.getId());
-            rMap.put("ejerciciosCount", ejercicios.size());
-
-            List<Map<String, Object>> eList = new ArrayList<>();
-            for (RutinaEjercicio re : ejercicios) {
-                Map<String, Object> eMap = new HashMap<>();
-                eMap.put("id", re.getId().toString());
-                eMap.put("ejercicioId", re.getEjercicioId());
-                eMap.put("nombre", re.getNombre());
-                eMap.put("series", re.getSeries());
-                eMap.put("reps", re.getReps());
-                eMap.put("peso", re.getPeso());
-                eMap.put("descanso", re.getDescanso());
-                eList.add(eMap);
-            }
-            rMap.put("ejercicios", eList);
-            response.add(rMap);
+            response.add(mapearRutinaAResponse(r, usuario, null));
         }
 
         return ResponseEntity.ok(response);
@@ -141,19 +86,17 @@ public class RutinaRestController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<?> crearRutina(Authentication auth, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> crearRutina(Authentication auth, @RequestBody RutinaRequest payload) {
         Usuario creador = obtenerUsuarioAutenticado(auth);
 
-        String nombre = (String) payload.get("nombre");
-        String dias = (String) payload.get("dias");
-        
-        if (nombre == null || nombre.trim().isEmpty() || dias == null || dias.trim().isEmpty()) {
+        if (payload.getNombre() == null || payload.getNombre().trim().isEmpty() || 
+            payload.getDias() == null || payload.getDias().trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Nombre y días son campos obligatorios"));
         }
 
         Rutina rutina = new Rutina();
-        rutina.setNombre(nombre);
-        rutina.setDias(dias);
+        rutina.setNombre(payload.getNombre());
+        rutina.setDias(payload.getDias());
         rutina.setTipo("PROPIA");
         rutina.setCreador(creador);
         rutina.setMiembro(creador);
@@ -161,19 +104,18 @@ public class RutinaRestController {
         Rutina rutinaGuardada = rutinaRepository.save(rutina);
 
         // Guardar ejercicios
-        List<Map<String, Object>> ejerciciosPayload = (List<Map<String, Object>>) payload.get("ejercicios");
-        if (ejerciciosPayload != null) {
+        if (payload.getEjercicios() != null) {
             int orden = 0;
-            for (Map<String, Object> ep : ejerciciosPayload) {
+            for (RutinaEjercicioRequest ep : payload.getEjercicios()) {
                 RutinaEjercicio re = new RutinaEjercicio();
                 re.setRutina(rutinaGuardada);
-                re.setEjercicioId((String) ep.get("ejercicioId"));
-                re.setNombre((String) ep.get("nombre"));
+                re.setEjercicioId(ep.getEjercicioId());
+                re.setNombre(ep.getNombre());
                 re.setOrden(orden++);
-                re.setSeries(Integer.valueOf(ep.get("series").toString()));
-                re.setReps(Integer.valueOf(ep.get("reps").toString()));
-                re.setPeso(ep.get("peso").toString());
-                re.setDescanso(Integer.valueOf(ep.get("descanso").toString()));
+                re.setSeries(ep.getSeries());
+                re.setReps(ep.getReps());
+                re.setPeso(ep.getPeso());
+                re.setDescanso(ep.getDescanso());
 
                 rutinaEjercicioRepository.save(re);
             }
@@ -187,7 +129,7 @@ public class RutinaRestController {
 
     @PostMapping("/{id}/asignar")
     @Transactional
-    public ResponseEntity<?> asignarRutina(Authentication auth, @PathVariable Long id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> asignarRutina(Authentication auth, @PathVariable Long id, @RequestBody RutinaAsignarRequest payload) {
         Usuario entrenador = obtenerUsuarioAutenticado(auth);
         if (entrenador.getRol() != Rol.ENTRENADOR) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo los entrenadores pueden asignar rutinas"));
@@ -196,12 +138,9 @@ public class RutinaRestController {
         Rutina plantilla = rutinaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rutina plantilla no encontrada"));
 
-        List<Object> rawIds = (List<Object>) payload.get("miembroIds");
         Set<Long> miembroIds = new HashSet<>();
-        if (rawIds != null) {
-            for (Object o : rawIds) {
-                miembroIds.add(Long.valueOf(o.toString()));
-            }
+        if (payload.getMiembroIds() != null) {
+            miembroIds.addAll(payload.getMiembroIds());
         }
 
         // Miembros a cargo de este entrenador
@@ -257,7 +196,7 @@ public class RutinaRestController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<?> editarRutina(Authentication auth, @PathVariable Long id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> editarRutina(Authentication auth, @PathVariable Long id, @RequestBody RutinaRequest payload) {
         Usuario usuario = obtenerUsuarioAutenticado(auth);
         Rutina rutina = rutinaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rutina no encontrada"));
@@ -266,32 +205,29 @@ public class RutinaRestController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes permisos para modificar esta rutina"));
         }
 
-        String nombre = (String) payload.get("nombre");
-        String dias = (String) payload.get("dias");
-
-        if (nombre == null || nombre.trim().isEmpty() || dias == null || dias.trim().isEmpty()) {
+        if (payload.getNombre() == null || payload.getNombre().trim().isEmpty() || 
+            payload.getDias() == null || payload.getDias().trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Nombre y días son obligatorios"));
         }
 
-        rutina.setNombre(nombre);
-        rutina.setDias(dias);
+        rutina.setNombre(payload.getNombre());
+        rutina.setDias(payload.getDias());
         rutinaRepository.save(rutina);
 
         rutinaEjercicioRepository.deleteByRutinaId(rutina.getId());
 
-        List<Map<String, Object>> ejerciciosPayload = (List<Map<String, Object>>) payload.get("ejercicios");
-        if (ejerciciosPayload != null) {
+        if (payload.getEjercicios() != null) {
             int orden = 0;
-            for (Map<String, Object> ep : ejerciciosPayload) {
+            for (RutinaEjercicioRequest ep : payload.getEjercicios()) {
                 RutinaEjercicio re = new RutinaEjercicio();
                 re.setRutina(rutina);
-                re.setEjercicioId((String) ep.get("ejercicioId"));
-                re.setNombre((String) ep.get("nombre"));
+                re.setEjercicioId(ep.getEjercicioId());
+                re.setNombre(ep.getNombre());
                 re.setOrden(orden++);
-                re.setSeries(Integer.valueOf(ep.get("series").toString()));
-                re.setReps(Integer.valueOf(ep.get("reps").toString()));
-                re.setPeso(ep.get("peso").toString());
-                re.setDescanso(Integer.valueOf(ep.get("descanso").toString()));
+                re.setSeries(ep.getSeries());
+                re.setReps(ep.getReps());
+                re.setPeso(ep.getPeso());
+                re.setDescanso(ep.getDescanso());
 
                 rutinaEjercicioRepository.save(re);
             }
@@ -314,6 +250,52 @@ public class RutinaRestController {
         rutinaEjercicioRepository.deleteByRutinaId(rutina.getId());
         rutinaRepository.delete(rutina);
 
-        return ResponseEntity.ok(Map.of("mensaje", "Rutina eliminada exitosamente"));
+        return ResponseEntity.ok(Map.of("mensaje", "Rutina cantidad eliminada exitosamente"));
+    }
+
+    // --- Métodos Auxiliares de Mapeo (Evitan Código Duplicado) ---
+
+    private Map<String, Object> mapearRutinaAResponse(Rutina r, Usuario usuarioAutenticado, List<String> miembrosAsignados) {
+        Map<String, Object> rMap = new HashMap<>();
+        rMap.put("id", r.getId().toString());
+        rMap.put("nombre", r.getNombre());
+        rMap.put("dias", r.getDias());
+        rMap.put("tipo", r.getTipo());
+
+        String autor = "Sistema";
+        if (r.getCreador() != null) {
+            if (r.getCreador().getId().equals(usuarioAutenticado.getId())) {
+                autor = "Yo";
+            } else {
+                autor = r.getCreador().getNombre() + " " + r.getCreador().getApellido();
+            }
+        }
+        rMap.put("autor", autor);
+
+        List<RutinaEjercicio> ejercicios = rutinaEjercicioRepository.findByRutinaIdOrderByOrdenAsc(r.getId());
+        rMap.put("ejerciciosCount", ejercicios.size());
+        rMap.put("ejercicios", mapearEjercicios(ejercicios));
+
+        if (miembrosAsignados != null) {
+            rMap.put("asignados", miembrosAsignados);
+        }
+
+        return rMap;
+    }
+
+    private List<Map<String, Object>> mapearEjercicios(List<RutinaEjercicio> ejercicios) {
+        List<Map<String, Object>> eList = new ArrayList<>();
+        for (RutinaEjercicio re : ejercicios) {
+            Map<String, Object> eMap = new HashMap<>();
+            eMap.put("id", re.getId().toString());
+            eMap.put("ejercicioId", re.getEjercicioId());
+            eMap.put("nombre", re.getNombre());
+            eMap.put("series", re.getSeries());
+            eMap.put("reps", re.getReps());
+            eMap.put("peso", re.getPeso());
+            eMap.put("descanso", re.getDescanso());
+            eList.add(eMap);
+        }
+        return eList;
     }
 }
