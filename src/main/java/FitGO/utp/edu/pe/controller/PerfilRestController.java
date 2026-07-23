@@ -52,6 +52,19 @@ public class PerfilRestController {
         usuario.setNombre(request.getNombre());
         usuario.setApellido(request.getApellido());
         usuario.setTelefono(request.getTelefono());
+        
+        if (request.getFechaNacimiento() != null) {
+            usuario.setFechaNacimiento(request.getFechaNacimiento());
+        }
+        if (request.getSexo() != null) {
+            usuario.setSexo(request.getSexo());
+        }
+        if (request.getPesoObjetivo() != null) {
+            usuario.setPesoObjetivo(request.getPesoObjetivo());
+        }
+        if (request.getGrasaObjetivo() != null) {
+            usuario.setGrasaObjetivo(request.getGrasaObjetivo());
+        }
 
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             if (request.getPassword().length() < 6) {

@@ -21,6 +21,11 @@ public class PerfilRequest {
     private String password;
     private String passwordActual;
 
+    private java.time.LocalDate fechaNacimiento;
+    private String sexo;
+    private Double pesoObjetivo;
+    private Double grasaObjetivo;
+
     public PerfilRequest() {
     }
 
@@ -78,5 +83,37 @@ public class PerfilRequest {
 
     public void setPasswordActual(String passwordActual) {
         this.passwordActual = passwordActual;
+    }
+
+    public java.time.LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public String getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(String sexo) {
+        this.sexo = sexo;
+    }
+
+    public Double getPesoObjetivo() {
+        return pesoObjetivo;
+    }
+
+    public void setPesoObjetivo(Double pesoObjetivo) {
+        this.pesoObjetivo = pesoObjetivo;
+    }
+
+    public Double getGrasaObjetivo() {
+        return grasaObjetivo;
+    }
+
+    public void setGrasaObjetivo(Double grasaObjetivo) {
+        this.grasaObjetivo = grasaObjetivo;
     }
 }
