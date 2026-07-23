@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface ProgresoRepository extends JpaRepository<Progreso, Long> {
    
     Optional<Progreso> findTopByUsuarioOrderByFechaRegistroDesc(Usuario usuario);
+    java.util.List<Progreso> findByUsuarioOrderByFechaRegistroAsc(Usuario usuario);
 }
